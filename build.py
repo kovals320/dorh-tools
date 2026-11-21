@@ -38,7 +38,8 @@ def layout(title, desc, path, body, scripts=(), jsonld=None):
 <meta name="theme-color" content="#0f1115">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/style.css">
-{ld}{sc}</head>
+{ld}{sc}<script src="/_vercel/insights/script.js" defer></script>
+</head>
 <body>
 <header class="site"><div class="wrap">
 <a class="logo" href="/">dorh<span>.fyi</span></a>

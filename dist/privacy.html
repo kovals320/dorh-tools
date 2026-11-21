@@ -14,6 +14,7 @@
 <meta name="theme-color" content="#0f1115">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/style.css">
+<script src="/_vercel/insights/script.js" defer></script>
 </head>
 <body>
 <header class="site"><div class="wrap">
@@ -25,10 +26,11 @@
 <div class="prose">
 <h1>Privacy</h1>
 <p>Every tool on this site except What Is My IP runs entirely in your browser using JavaScript. Headers, certificates, reports, crontabs and IP ranges you paste or drop are processed on your device. They are never sent to this site or anyone else.</p>
-<p>This is enforced, not just promised. Every page is served with a Content-Security-Policy that includes <code>connect-src 'none'</code>, which stops scripts on the page from making network requests. You can check it in your browser's DevTools (Network tab and response headers).</p>
+<p>This is enforced, not just promised. Every page is served with a Content-Security-Policy that only allows scripts from this site and blocks requests to any third party. You can check it in your browser's DevTools.</p>
 <p>The one exception is <a href="/my-ip">What Is My IP</a> (and <code>/ip</code>). It has to run on the server, because only the server can see the address you connect from. It reads your IP and the approximate location the hosting provider attaches to the request, returns them to you, and stores or caches nothing.</p>
 <p>The hosting provider (Vercel) may keep standard web server logs, such as IP address, user agent and requested URL, for security and operations. Tool input is never part of those logs, because it never leaves your browser.</p>
-<p>No cookies are set and there is no analytics or tracking. If that changes, for example if privacy-respecting ads are added to cover hosting costs, this page will be updated first.</p>
+<p><b>Analytics:</b> the site uses Vercel Web Analytics to count page views. It's cookieless and first-party (served from this domain), doesn't fingerprint or track you across sites, and records only the page URL, referrer, country and device type. It never sees anything you type, paste or drop into a tool.</p>
+<p>No cookies are set and there's no advertising or cross-site tracking. If that changes, for example if privacy-respecting ads are added to cover hosting costs, this page will be updated first.</p>
 </div>
 
 </div></main>

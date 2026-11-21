@@ -18,6 +18,7 @@
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How do I verify an OnCalendar expression?", "acceptedAnswer": {"@type": "Answer", "text": "Run systemd-analyze calendar --iterations=5 'expression' on the target machine. It prints the normalized form and the next trigger times."}}, {"@type": "Question", "name": "Does systemd support cron step values like */5?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. systemd uses start/step notation, so */5 in the minute field becomes 00/5, and a bounded range like 10-40/10 becomes the explicit list 10,20,30,40."}}, {"@type": "Question", "name": "How do I set a timezone for a systemd timer?", "acceptedAnswer": {"@type": "Answer", "text": "Append an IANA timezone to the OnCalendar expression, e.g. OnCalendar=*-*-* 02:30:00 Europe/London. If your crontab sets CRON_TZ or TZ, the converter adds it automatically."}}, {"@type": "Question", "name": "Why does the generated timer set AccuracySec=1s?", "acceptedAnswer": {"@type": "Answer", "text": "By default systemd may delay a timer by up to one minute to batch wakeups. Cron fires at the start of the minute, so AccuracySec=1s keeps the behaviour the same. Remove it if exact timing doesn't matter."}}]}</script>
 <script src="/assets/common.js" defer></script>
 <script src="/assets/cron.js" defer></script>
+<script src="/_vercel/insights/script.js" defer></script>
 </head>
 <body>
 <header class="site"><div class="wrap">

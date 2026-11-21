@@ -41,7 +41,7 @@
 
 <h2>FAQ</h2>
 <h3 class="q">Are my DMARC reports uploaded anywhere?</h3>
-<p>No. Files are decompressed and parsed in your browser with the native DecompressionStream and DOMParser APIs. The page's Content-Security-Policy (connect-src 'none') blocks any network request, so the data can't leave your machine.</p>
+<p>No. Files are decompressed and parsed in your browser with the native DecompressionStream and DOMParser APIs. The page's Content-Security-Policy blocks requests to any third party, and the reports are never sent anywhere, not even to this site.</p>
 <h3 class="q">Which report formats are supported?</h3>
 <p>Standard RFC 7489 aggregate reports as raw XML, gzip-compressed (.xml.gz, used by Microsoft and others) or ZIP (used by Google and Yahoo). You can drop many files at once, and duplicate reports are detected by report ID and skipped.</p>
 <h3 class="q">When is it safe to move from p=none to p=reject?</h3>

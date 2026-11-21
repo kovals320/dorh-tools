@@ -64,7 +64,7 @@ X-Mailer: ExampleMailer 2.1</pre>
 
 <h2>FAQ</h2>
 <h3 class="q">Is it safe to paste email headers here?</h3>
-<p>Yes. The analysis runs entirely in your browser with JavaScript, and the page's Content-Security-Policy blocks all outgoing network requests (connect-src 'none'). Headers often include internal hostnames, IPs and addresses, which is why this tool never uploads them.</p>
+<p>Yes. The analysis runs entirely in your browser with JavaScript, it's never sent anywhere, and the page's Content-Security-Policy blocks requests to any third party. Headers often include internal hostnames, IPs and addresses, which is why this tool never uploads them.</p>
 <h3 class="q">Why does SPF pass but DMARC fail?</h3>
 <p>SPF checks the envelope sender (Return-Path), not the From address you see. If the Return-Path domain doesn't align with the From domain and there's no aligned DKIM signature, DMARC fails even though SPF passed.</p>
 <h3 class="q">Which Authentication-Results header should I trust?</h3>

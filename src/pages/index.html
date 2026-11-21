@@ -2,7 +2,7 @@
 <span class="badge">● 100% client-side · no uploads · no signup · no tracking</span>
 <h1>Tools for people who don't paste secrets into random websites</h1>
 <p class="lede">Practical utilities for sysadmins, mail admins and security engineers. Everything runs locally in your browser (the IP lookup is the one exception, and it only reads your connection's address).
-The site's Content-Security-Policy sets <code class="mono">connect-src 'none'</code>, so pages can't send data anywhere even if they wanted to.</p>
+The site's Content-Security-Policy (<code class="mono">connect-src 'self'</code>) blocks requests to any third party. The only request a page makes is an anonymous, cookieless page-view count, which never includes anything you paste.</p>
 
 <h2 id="tools">Tools</h2>
 <div class="grid">
@@ -18,5 +18,5 @@ The site's Content-Security-Policy sets <code class="mono">connect-src 'none'</c
 <div class="prose">
 <p>Most free "checkers" are lead magnets. You paste email headers, certificates or DMARC reports, which often contain internal hostnames,
 IPs and addresses, into a vendor's server, and a sales email follows. These tools take the opposite approach: static pages, no backend,
-no analytics cookies. Open DevTools → Network while you use them and you'll see that no requests go out.</p>
+no cookies, and no third-party scripts. Open DevTools → Network while you use a tool and you'll see your input never leaves the page.</p>
 </div>
