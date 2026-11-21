@@ -1,0 +1,9 @@
+<!--{"title":"Privacy — dorh.fyi","desc":"How dorh.fyi handles your data: tools run entirely in your browser and nothing you enter is uploaded."}-->
+<div class="prose">
+<h1>Privacy</h1>
+<p>Every tool on this site except What Is My IP runs entirely in your browser using JavaScript. Headers, certificates, reports, crontabs and IP ranges you paste or drop are processed on your device. They are never sent to this site or anyone else.</p>
+<p>This is enforced, not just promised. Every page is served with a Content-Security-Policy that includes <code>connect-src 'none'</code>, which stops scripts on the page from making network requests. You can check it in your browser's DevTools (Network tab and response headers).</p>
+<p>The one exception is <a href="/my-ip">What Is My IP</a> (and <code>/ip</code>). It has to run on the server, because only the server can see the address you connect from. It reads your IP and the approximate location the hosting provider attaches to the request, returns them to you, and stores or caches nothing.</p>
+<p>The hosting provider (Vercel) may keep standard web server logs, such as IP address, user agent and requested URL, for security and operations. Tool input is never part of those logs, because it never leaves your browser.</p>
+<p>No cookies are set and there is no analytics or tracking. If that changes, for example if privacy-respecting ads are added to cover hosting costs, this page will be updated first.</p>
+</div>

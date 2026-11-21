@@ -1,0 +1,40 @@
+<!--{"title":"What Is My IP Address? — plus curl dorh.fyi/ip for scripts","desc":"See your public IP address, approximate location and timezone. Get it from the command line with curl https://dorh.fyi/ip (plain text) or /ip.json. No logging, no ads, no tracking.","h":"What Is My IP","app":true,"scripts":["common.js"],"template":true}-->
+<span class="badge">● Nothing is logged or stored. The page is generated per request and never cached.</span>
+<h1>What is my IP address?</h1>
+<div class="card">
+  <div class="ipbig mono" id="myip">__IP__</div>
+  <div class="row"><button class="secondary" data-copy="#myip">Copy</button></div>
+  <div class="kv u-mt12">
+    <div>Version</div><div>__VER__</div>
+    <div>Approx. location</div><div>__LOC__</div>
+    <div>Timezone</div><div>__TZ__</div>
+    <div>User agent</div><div>__UA__</div>
+  </div>
+</div>
+
+<h2>From the command line</h2>
+<pre class="out">curl https://dorh.fyi/ip          # plain text, just the IP
+curl https://dorh.fyi/ip.json     # {"ip":"…","version":4,"country":"…",…}
+
+# PowerShell
+(Invoke-RestMethod https://dorh.fyi/ip).Trim()
+
+# in a script
+MYIP=$(curl -fsS https://dorh.fyi/ip)</pre>
+<p class="u-note">Use <code class="mono">https://</code> (or <code class="mono">curl -L</code>). Plain HTTP gets redirected to HTTPS, and curl doesn't follow redirects by default.</p>
+
+<section class="prose">
+<h2>About this result</h2>
+<p>This is the public IPv4 address that websites see when you connect, usually your router's or your ISP's (CGNAT) address, not the private address of your device. If you're on a VPN, a proxy or iCloud Private Relay, you'll see their exit address instead. The location comes from IP geolocation and is often only accurate to the city or region.</p>
+<p>This endpoint is IPv4-only, so it shows your IPv4 address even if you also have IPv6.</p>
+
+<h2>FAQ</h2>
+<h3 class="q">How do I find my public IP from the command line?</h3>
+<p>Run curl https://dorh.fyi/ip. It returns just the address and a newline, so it works directly in shell scripts. Use /ip.json if you also want the IP version, country and timezone.</p>
+<h3 class="q">Is my IP address logged?</h3>
+<p>No. The response is built per request from the connection data and never stored or cached. The hosting provider may keep standard short-lived access logs for security, like any website.</p>
+<h3 class="q">Why is my IP different from what ipconfig or ip addr shows?</h3>
+<p>Your device usually has a private address (10.x, 172.16–31.x, 192.168.x) behind NAT. Websites only ever see the public address of your router, ISP or VPN, which is what this page shows.</p>
+<h3 class="q">Why does the location look wrong?</h3>
+<p>IP geolocation databases map address blocks to the ISP's registered or routing location, not your physical position. Mobile networks and CGNAT often show a city far away, or just the country.</p>
+</section>

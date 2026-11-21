@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CIDR Calculator & Toolkit — IPv4/IPv6 subnet, overlap checker, range to CIDR</title>
+<meta name="description" content="IPv4 and IPv6 subnet calculator with netmask, wildcard, usable range, reverse DNS zone and subnet splitting, plus an overlap checker, IP range to CIDR converter and prefix aggregator. Runs in your browser.">
+<link rel="canonical" href="https://dorh.fyi/cidr-calculator">
+<meta property="og:type" content="website">
+<meta property="og:title" content="CIDR Calculator & Toolkit — IPv4/IPv6 subnet, overlap checker, range to CIDR">
+<meta property="og:description" content="IPv4 and IPv6 subnet calculator with netmask, wildcard, usable range, reverse DNS zone and subnet splitting, plus an overlap checker, IP range to CIDR converter and prefix aggregator. Runs in your browser.">
+<meta property="og:url" content="https://dorh.fyi/cidr-calculator">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0f1115">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "CIDR Toolkit", "url": "https://dorh.fyi/cidr-calculator", "applicationCategory": "DeveloperApplication", "operatingSystem": "Any (browser)", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "description": "IPv4 and IPv6 subnet calculator with netmask, wildcard, usable range, reverse DNS zone and subnet splitting, plus an overlap checker, IP range to CIDR converter and prefix aggregator. Runs in your browser."}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How do I check whether two subnets overlap?", "acceptedAnswer": {"@type": "Answer", "text": "Two prefixes overlap if the start of each one is no later than the end of the other. Paste all your prefixes into the overlap checker to see every overlapping pair, and whether one contains the other or they're identical."}}, {"@type": "Question", "name": "How do I convert an IP range to CIDR?", "acceptedAnswer": {"@type": "Answer", "text": "Split the range into the largest blocks that are aligned on a power-of-two boundary. 192.168.1.10–192.168.1.200 becomes eight prefixes, starting with 192.168.1.10/31. The Range → CIDR tab does this for IPv4 and IPv6."}}, {"@type": "Question", "name": "What does aggregate (summarize) do?", "acceptedAnswer": {"@type": "Answer", "text": "It merges overlapping and adjacent prefixes into the smallest equivalent set. For example, 10.0.0.0/24 and 10.0.1.0/24 become 10.0.0.0/23. That's useful for shortening firewall rules, allow-lists and route tables without changing what they match."}}, {"@type": "Question", "name": "What is a wildcard mask?", "acceptedAnswer": {"@type": "Answer", "text": "The bitwise inverse of the netmask (0.0.0.255 for a /24). It's used in Cisco ACLs and OSPF network statements."}}]}</script>
+<script src="/assets/common.js" defer></script>
+<script src="/assets/cidr.js" defer></script>
+</head>
+<body>
+<header class="site"><div class="wrap">
+<a class="logo" href="/">dorh<span>.fyi</span></a>
+<nav class="top"><a href="/#tools">Tools</a><a href="/privacy">Privacy</a><a href="/about">About</a></nav>
+</div></header>
+<main><div class="wrap">
+
+<span class="badge">● Runs locally. Your network plan stays in your browser.</span>
+<h1>CIDR Toolkit: IPv4 &amp; IPv6</h1>
+<p class="lede">A subnet calculator plus the jobs that usually need a spreadsheet: spotting overlapping prefixes, turning an IP range into CIDR blocks, and collapsing a messy allow-list into the fewest prefixes.</p>
+<div class="tabs">
+  <button class="active" data-pane="p-calc">Subnet calculator</button>
+  <button data-pane="p-ov">Overlap checker</button>
+  <button data-pane="p-rg">Range → CIDR</button>
+  <button data-pane="p-ag">Aggregate / summarize</button>
+</div>
+
+<div class="pane" id="p-calc">
+  <div class="card">
+    <label for="cidr">IP / prefix (or IPv4 + netmask)</label>
+    <input type="text" id="cidr" value="10.20.28.0/22" spellcheck="false">
+    <div class="row u-gap20">
+      <div class="u-grow"><label for="chk">Is this IP inside?</label><input type="text" id="chk" placeholder="10.20.31.77"><div class="u-res" id="chk-out"></div></div>
+      <div class="u-w160"><label for="splitp">Split into /</label><input type="number" id="splitp" min="0" max="128"></div>
+    </div>
+  </div>
+  <div id="calc-out"></div>
+  <h3>Subnets</h3><div id="split-out"></div>
+</div>
+
+<div class="pane hidden" id="p-ov">
+  <div class="card">
+    <label for="ov-in">One prefix per line (IPv4 and IPv6 can be mixed; # comments allowed)</label>
+    <textarea id="ov-in" spellcheck="false">10.0.0.0/16   # prod VPC
+10.0.128.0/20 # legacy
+10.1.0.0/16
+192.168.0.0/24
+192.168.0.128/25
+2001:db8::/48
+2001:db8:0:10::/64</textarea>
+    <div class="row"><button id="ov-go">Check overlaps</button></div>
+  </div>
+  <div id="ov-out"></div>
+</div>
+
+<div class="pane hidden" id="p-rg">
+  <div class="card">
+    <label for="rg-in">Start – end address</label>
+    <input type="text" id="rg-in" value="192.168.1.10 - 192.168.1.200" spellcheck="false">
+    <div class="row"><button id="rg-go">Convert</button></div>
+  </div>
+  <div id="rg-out"></div>
+</div>
+
+<div class="pane hidden" id="p-ag">
+  <div class="card">
+    <label for="ag-in">Prefixes, single IPs or ranges (one per line or comma-separated)</label>
+    <textarea id="ag-in" spellcheck="false">10.0.0.0/24
+10.0.1.0/24
+10.0.2.0/23
+10.0.4.17
+192.168.10.0 - 192.168.10.255
+192.168.11.0/24
+2001:db8:0:0::/64
+2001:db8:0:1::/64</textarea>
+    <div class="row"><button id="ag-go">Aggregate</button></div>
+  </div>
+  <div id="ag-out"></div>
+</div>
+
+<section class="prose">
+<h2>IPv4 subnet cheat sheet</h2>
+<div class="scroll"><table>
+<tr><th>Prefix</th><th>Netmask</th><th>Addresses</th><th>Usable hosts</th></tr>
+<tr><td class="mono">/8</td><td class="mono">255.0.0.0</td><td>16,777,216</td><td>16,777,214</td></tr>
+<tr><td class="mono">/16</td><td class="mono">255.255.0.0</td><td>65,536</td><td>65,534</td></tr>
+<tr><td class="mono">/20</td><td class="mono">255.255.240.0</td><td>4,096</td><td>4,094</td></tr>
+<tr><td class="mono">/22</td><td class="mono">255.255.252.0</td><td>1,024</td><td>1,022</td></tr>
+<tr><td class="mono">/23</td><td class="mono">255.255.254.0</td><td>512</td><td>510</td></tr>
+<tr><td class="mono">/24</td><td class="mono">255.255.255.0</td><td>256</td><td>254</td></tr>
+<tr><td class="mono">/25</td><td class="mono">255.255.255.128</td><td>128</td><td>126</td></tr>
+<tr><td class="mono">/26</td><td class="mono">255.255.255.192</td><td>64</td><td>62</td></tr>
+<tr><td class="mono">/27</td><td class="mono">255.255.255.224</td><td>32</td><td>30</td></tr>
+<tr><td class="mono">/28</td><td class="mono">255.255.255.240</td><td>16</td><td>14</td></tr>
+<tr><td class="mono">/29</td><td class="mono">255.255.255.248</td><td>8</td><td>6</td></tr>
+<tr><td class="mono">/30</td><td class="mono">255.255.255.252</td><td>4</td><td>2</td></tr>
+<tr><td class="mono">/31</td><td class="mono">255.255.255.254</td><td>2</td><td>2 (point-to-point)</td></tr>
+<tr><td class="mono">/32</td><td class="mono">255.255.255.255</td><td>1</td><td>1 (host)</td></tr>
+</table></div>
+<p>Cloud providers reserve extra addresses in every subnet: AWS and Azure take 5, GCP takes 4. Subtract those when sizing VPC subnets.</p>
+
+<h2>FAQ</h2>
+<h3 class="q">How do I check whether two subnets overlap?</h3>
+<p>Two prefixes overlap if the start of each one is no later than the end of the other. Paste all your prefixes into the overlap checker to see every overlapping pair, and whether one contains the other or they're identical.</p>
+<h3 class="q">How do I convert an IP range to CIDR?</h3>
+<p>Split the range into the largest blocks that are aligned on a power-of-two boundary. 192.168.1.10–192.168.1.200 becomes eight prefixes, starting with 192.168.1.10/31. The Range → CIDR tab does this for IPv4 and IPv6.</p>
+<h3 class="q">What does aggregate (summarize) do?</h3>
+<p>It merges overlapping and adjacent prefixes into the smallest equivalent set. For example, 10.0.0.0/24 and 10.0.1.0/24 become 10.0.0.0/23. That's useful for shortening firewall rules, allow-lists and route tables without changing what they match.</p>
+<h3 class="q">What is a wildcard mask?</h3>
+<p>The bitwise inverse of the netmask (0.0.0.255 for a /24). It's used in Cisco ACLs and OSPF network statements.</p>
+</section>
+
+</div></main>
+<footer class="site"><div class="wrap">
+Every tool runs locally in your browser. Nothing you paste or drop is uploaded. &nbsp;·&nbsp;
+<a href="/privacy">Privacy</a> · <a href="/about">About</a> · © 2026 dorh.fyi
+</div></footer>
+</body>
+</html>

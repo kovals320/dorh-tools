@@ -1,0 +1,22 @@
+<!--{"title":"dorh.fyi — Private, browser-only tools for sysadmins & security folks","desc":"Free sysadmin and security tools that run 100% in your browser: email header analyzer, DMARC report viewer, certificate decoder, cron to systemd converter, CIDR toolkit. No uploads, no signup."}-->
+<span class="badge">● 100% client-side · no uploads · no signup · no tracking</span>
+<h1>Tools for people who don't paste secrets into random websites</h1>
+<p class="lede">Practical utilities for sysadmins, mail admins and security engineers. Everything runs locally in your browser (the IP lookup is the one exception, and it only reads your connection's address).
+The site's Content-Security-Policy sets <code class="mono">connect-src 'none'</code>, so pages can't send data anywhere even if they wanted to.</p>
+
+<h2 id="tools">Tools</h2>
+<div class="grid">
+  <a class="tool-card" href="/email-header-analyzer"><h3>Email Header Analyzer</h3><p>Paste raw headers. See every hop, the delay at each one, and SPF, DKIM, DMARC and ARC results, with red flags highlighted.</p></a>
+  <a class="tool-card" href="/dmarc-report-viewer"><h3>DMARC Report Viewer</h3><p>Drop RUA aggregate reports (.xml, .gz, .zip) to see sources, pass rates and alignment failures for your domain.</p></a>
+  <a class="tool-card" href="/certificate-decoder"><h3>Certificate &amp; CSR Decoder</h3><p>Decode PEM or DER: subject, SANs, key, extensions and fingerprints. Also checks the lifetime against the 200/100/47-day CA/B limits.</p></a>
+  <a class="tool-card" href="/cron-to-systemd"><h3>Cron → systemd Timer</h3><p>Convert crontab lines to OnCalendar, with the cron day-of-month/day-of-week OR rule handled correctly. Generates the unit files.</p></a>
+  <a class="tool-card" href="/my-ip"><h3>What Is My IP</h3><p>Your public IP, approximate location and timezone. For scripts: <code class="mono">curl https://dorh.fyi/ip</code>, plain text with no ads or tracking.</p></a>
+  <a class="tool-card" href="/cidr-calculator"><h3>CIDR Toolkit</h3><p>IPv4/IPv6 subnet calculator, overlap and containment checker, IP range → CIDR, and prefix aggregation.</p></a>
+</div>
+
+<h2>Why another tool site?</h2>
+<div class="prose">
+<p>Most free "checkers" are lead magnets. You paste email headers, certificates or DMARC reports, which often contain internal hostnames,
+IPs and addresses, into a vendor's server, and a sales email follows. These tools take the opposite approach: static pages, no backend,
+no analytics cookies. Open DevTools → Network while you use them and you'll see that no requests go out.</p>
+</div>

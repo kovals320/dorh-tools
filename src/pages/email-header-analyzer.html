@@ -1,0 +1,74 @@
+<!--{"title":"Email Header Analyzer — trace hops, SPF, DKIM & DMARC (private, in-browser)","desc":"Paste raw email headers to see the delivery path, delay per hop, SPF/DKIM/DMARC/ARC results and phishing red flags. Runs 100% in your browser; headers are never uploaded.","h":"Email Header Analyzer","app":true,"scripts":["common.js","email-headers.js"]}-->
+<span class="badge">● Runs locally. Your headers never leave this page.</span>
+<h1>Email Header Analyzer</h1>
+<p class="lede">Paste the raw headers of an email to see the route it took, how long each hop took, the SPF, DKIM, DMARC and ARC results, and anything that looks off.</p>
+<div class="card">
+  <label for="in">Raw headers (or the whole .eml source)</label>
+  <textarea id="in" spellcheck="false" placeholder="Received: from mail.example.com (mail.example.com [192.0.2.10]) by mx.google.com …"></textarea>
+  <div class="row"><button id="go">Analyze</button><button class="secondary" id="sample">Load sample</button><button class="secondary" id="clear">Clear</button></div>
+</div>
+<div id="out"></div>
+
+<pre id="sample-data" class="hidden">Delivered-To: alice@example.org
+Received: by 2002:a05:7300:5c0c:b0:12a:1234:abcd with SMTP id x12csp1234567dyb;
+        Tue, 12 Nov 2024 09:14:07 -0800 (PST)
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@news.shop-example.com header.s=s1 header.b=AbCdEf12;
+       spf=pass (google.com: domain of bounces+123@em.shop-example.com designates 198.51.100.25 as permitted sender) smtp.mailfrom="bounces+123@em.shop-example.com";
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=shop-example.com
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@news.shop-example.com header.s=s1 header.b=AbCdEf12;
+       spf=pass (google.com: domain of bounces+123@em.shop-example.com designates 198.51.100.25 as permitted sender) smtp.mailfrom="bounces+123@em.shop-example.com";
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=shop-example.com
+Return-Path: &lt;bounces+123@em.shop-example.com&gt;
+Received: from o1.em.shop-example.com (o1.em.shop-example.com. [198.51.100.25])
+        by mx.google.com with ESMTPS id d75a77b69052e-462ff4a1b2csi1234567cf.123.2024.11.12.09.14.06
+        for &lt;alice@example.org&gt;
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 12 Nov 2024 09:14:07 -0800 (PST)
+Received: by filterdrecv-7d9f8c6b5-x2k4p with SMTP id filterdrecv-7d9f8c6b5-x2k4p-1-6733B2FD-1A
+        2024-11-12 17:14:05.123456789 +0000 UTC m=+1234.567890123
+Received: from shop-example-app01 (unknown [203.0.113.7])
+	by geopod-ismtpd-3 (SG) with HTTP
+	id abc123XYZ
+	for &lt;alice@example.org&gt;;
+	Tue, 12 Nov 2024 17:14:04.987 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=news.shop-example.com;
+	h=content-type:from:mime-version:subject:reply-to:to:cc:content-type:from:subject:to;
+	s=s1; bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=; b=AbCdEf12
+From: Shop Example &lt;deals@shop-example.com&gt;
+Reply-To: Support &lt;help@shop-support-desk.net&gt;
+To: alice@example.org
+Subject: Your weekly deals are here
+Date: Tue, 12 Nov 2024 17:14:04 +0000
+Message-ID: &lt;abc123XYZ@geopod-ismtpd-3&gt;
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+List-Unsubscribe: &lt;mailto:unsub@em.shop-example.com&gt;, &lt;https://em.shop-example.com/unsub/abc&gt;
+X-Mailer: ExampleMailer 2.1</pre>
+
+<section class="prose">
+<h2>How to get the raw headers</h2>
+<ul>
+  <li><b>Gmail:</b> open the message → ⋮ menu → <i>Show original</i> → copy everything.</li>
+  <li><b>Outlook (web/new):</b> open the message → ⋯ → <i>View</i> → <i>View message details</i>.</li>
+  <li><b>Outlook (classic desktop):</b> open the message → <i>File</i> → <i>Properties</i> → <i>Internet headers</i>.</li>
+  <li><b>Apple Mail:</b> <i>View</i> → <i>Message</i> → <i>All Headers</i> (or <i>Raw Source</i>).</li>
+  <li><b>Thunderbird:</b> <i>View</i> → <i>Message Source</i> (Ctrl+U).</li>
+</ul>
+
+<h2>Reading the results</h2>
+<p><b>Received headers</b> are added by each server the message passes through, newest on top. The analyzer reverses them so you read the path from the sender to your mailbox, and works out the delay between hops from their timestamps. Large delays usually mean greylisting, queueing or a slow filter. Timestamps that go backwards mean clock skew or forged headers.</p>
+<p><b>Authentication-Results</b> is written by the receiving server and holds its SPF, DKIM and DMARC verdicts. Only the topmost one, from your own provider, can be trusted. Anything below it could have been added by the sender.</p>
+<p><b>Alignment matters.</b> DMARC passes only if SPF or DKIM passes <i>and</i> the domain involved matches the visible From domain. That's why the analyzer flags a Return-Path or DKIM d= domain that differs from From.</p>
+
+<h2>FAQ</h2>
+<h3 class="q">Is it safe to paste email headers here?</h3>
+<p>Yes. The analysis runs entirely in your browser with JavaScript, and the page's Content-Security-Policy blocks all outgoing network requests (connect-src 'none'). Headers often include internal hostnames, IPs and addresses, which is why this tool never uploads them.</p>
+<h3 class="q">Why does SPF pass but DMARC fail?</h3>
+<p>SPF checks the envelope sender (Return-Path), not the From address you see. If the Return-Path domain doesn't align with the From domain and there's no aligned DKIM signature, DMARC fails even though SPF passed.</p>
+<h3 class="q">Which Authentication-Results header should I trust?</h3>
+<p>Only the topmost one added by your own mail provider. Any Authentication-Results lower down could have been inserted by the sender or an intermediate server, and shouldn't be trusted.</p>
+<h3 class="q">What does a large delay between hops mean?</h3>
+<p>Usually the message sat in a queue: greylisting, a busy outbound relay, spam or antivirus scanning, or a retry after a temporary failure. Delays of seconds are normal; minutes to hours point to the server shown in that hop.</p>
+</section>

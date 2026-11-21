@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DMARC Report Viewer — analyze RUA aggregate XML, .gz & .zip (private, in-browser)</title>
+<meta name="description" content="Drop DMARC aggregate reports from Google, Microsoft, Yahoo and others to see sending sources, pass rates and alignment failures. Files are parsed locally and never uploaded.">
+<link rel="canonical" href="https://dorh.fyi/dmarc-report-viewer">
+<meta property="og:type" content="website">
+<meta property="og:title" content="DMARC Report Viewer — analyze RUA aggregate XML, .gz & .zip (private, in-browser)">
+<meta property="og:description" content="Drop DMARC aggregate reports from Google, Microsoft, Yahoo and others to see sending sources, pass rates and alignment failures. Files are parsed locally and never uploaded.">
+<meta property="og:url" content="https://dorh.fyi/dmarc-report-viewer">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0f1115">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/style.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "DMARC Report Viewer", "url": "https://dorh.fyi/dmarc-report-viewer", "applicationCategory": "DeveloperApplication", "operatingSystem": "Any (browser)", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "description": "Drop DMARC aggregate reports from Google, Microsoft, Yahoo and others to see sending sources, pass rates and alignment failures. Files are parsed locally and never uploaded."}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Are my DMARC reports uploaded anywhere?", "acceptedAnswer": {"@type": "Answer", "text": "No. Files are decompressed and parsed in your browser with the native DecompressionStream and DOMParser APIs. The page's Content-Security-Policy (connect-src 'none') blocks any network request, so the data can't leave your machine."}}, {"@type": "Question", "name": "Which report formats are supported?", "acceptedAnswer": {"@type": "Answer", "text": "Standard RFC 7489 aggregate reports as raw XML, gzip-compressed (.xml.gz, used by Microsoft and others) or ZIP (used by Google and Yahoo). You can drop many files at once, and duplicate reports are detected by report ID and skipped."}}, {"@type": "Question", "name": "When is it safe to move from p=none to p=reject?", "acceptedAnswer": {"@type": "Answer", "text": "Once every legitimate sending source, meaning your mail platform, CRM, ticketing, invoicing and marketing tools, passes DMARC consistently over a few weeks of reports. Moving to quarantine with a low pct= first is a common stepping stone."}}, {"@type": "Question", "name": "Does this show forensic (RUF) reports?", "acceptedAnswer": {"@type": "Answer", "text": "No. This viewer handles aggregate (RUA) reports only. Forensic reports are individual message samples that few providers still send."}}]}</script>
+<script src="/assets/common.js" defer></script>
+<script src="/assets/dmarc.js" defer></script>
+</head>
+<body>
+<header class="site"><div class="wrap">
+<a class="logo" href="/">dorh<span>.fyi</span></a>
+<nav class="top"><a href="/#tools">Tools</a><a href="/privacy">Privacy</a><a href="/about">About</a></nav>
+</div></header>
+<main><div class="wrap">
+
+<span class="badge">● Runs locally. Reports are parsed in your browser and never uploaded.</span>
+<h1>DMARC Aggregate Report Viewer</h1>
+<p class="lede">Drop the DMARC aggregate (RUA) reports from your mailbox, as <code class="mono">.xml</code>, <code class="mono">.xml.gz</code> or <code class="mono">.zip</code>, as many as you like. You'll see who is sending as your domain, what passes, and what would break if you moved to <code class="mono">p=reject</code>.</p>
+<div class="card">
+  <div class="drop" id="drop">Drop report files here, or click to choose<br><small>.xml · .gz · .zip · multiple files OK · duplicates are skipped</small></div>
+  <input type="file" id="file" multiple accept=".xml,.gz,.zip,application/xml,application/gzip,application/zip" class="hidden">
+  <div class="row"><button class="secondary" id="sample">Load sample report</button><button class="secondary" id="clear">Clear</button><span class="u-note" id="status"></span></div>
+</div>
+<div id="out"></div>
+
+<pre id="sample-data" class="hidden">&lt;?xml version="1.0" encoding="UTF-8" ?&gt;
+&lt;feedback&gt;
+  &lt;report_metadata&gt;&lt;org_name&gt;google.com&lt;/org_name&gt;&lt;email&gt;noreply-dmarc-support@google.com&lt;/email&gt;&lt;report_id&gt;1234567890123456789&lt;/report_id&gt;&lt;date_range&gt;&lt;begin&gt;1731369600&lt;/begin&gt;&lt;end&gt;1731455999&lt;/end&gt;&lt;/date_range&gt;&lt;/report_metadata&gt;
+  &lt;policy_published&gt;&lt;domain&gt;example.com&lt;/domain&gt;&lt;adkim&gt;r&lt;/adkim&gt;&lt;aspf&gt;r&lt;/aspf&gt;&lt;p&gt;none&lt;/p&gt;&lt;sp&gt;none&lt;/sp&gt;&lt;pct&gt;100&lt;/pct&gt;&lt;/policy_published&gt;
+  &lt;record&gt;&lt;row&gt;&lt;source_ip&gt;209.85.220.41&lt;/source_ip&gt;&lt;count&gt;1243&lt;/count&gt;&lt;policy_evaluated&gt;&lt;disposition&gt;none&lt;/disposition&gt;&lt;dkim&gt;pass&lt;/dkim&gt;&lt;spf&gt;pass&lt;/spf&gt;&lt;/policy_evaluated&gt;&lt;/row&gt;
+    &lt;identifiers&gt;&lt;header_from&gt;example.com&lt;/header_from&gt;&lt;/identifiers&gt;
+    &lt;auth_results&gt;&lt;dkim&gt;&lt;domain&gt;example.com&lt;/domain&gt;&lt;result&gt;pass&lt;/result&gt;&lt;selector&gt;google&lt;/selector&gt;&lt;/dkim&gt;&lt;spf&gt;&lt;domain&gt;example.com&lt;/domain&gt;&lt;result&gt;pass&lt;/result&gt;&lt;/spf&gt;&lt;/auth_results&gt;&lt;/record&gt;
+  &lt;record&gt;&lt;row&gt;&lt;source_ip&gt;198.51.100.25&lt;/source_ip&gt;&lt;count&gt;310&lt;/count&gt;&lt;policy_evaluated&gt;&lt;disposition&gt;none&lt;/disposition&gt;&lt;dkim&gt;fail&lt;/dkim&gt;&lt;spf&gt;fail&lt;/spf&gt;&lt;/policy_evaluated&gt;&lt;/row&gt;
+    &lt;identifiers&gt;&lt;header_from&gt;example.com&lt;/header_from&gt;&lt;/identifiers&gt;
+    &lt;auth_results&gt;&lt;dkim&gt;&lt;domain&gt;crm-vendor.net&lt;/domain&gt;&lt;result&gt;pass&lt;/result&gt;&lt;selector&gt;k1&lt;/selector&gt;&lt;/dkim&gt;&lt;spf&gt;&lt;domain&gt;bounce.crm-vendor.net&lt;/domain&gt;&lt;result&gt;pass&lt;/result&gt;&lt;/spf&gt;&lt;/auth_results&gt;&lt;/record&gt;
+  &lt;record&gt;&lt;row&gt;&lt;source_ip&gt;203.0.113.99&lt;/source_ip&gt;&lt;count&gt;17&lt;/count&gt;&lt;policy_evaluated&gt;&lt;disposition&gt;none&lt;/disposition&gt;&lt;dkim&gt;fail&lt;/dkim&gt;&lt;spf&gt;fail&lt;/spf&gt;&lt;/policy_evaluated&gt;&lt;/row&gt;
+    &lt;identifiers&gt;&lt;header_from&gt;example.com&lt;/header_from&gt;&lt;/identifiers&gt;
+    &lt;auth_results&gt;&lt;spf&gt;&lt;domain&gt;example.com&lt;/domain&gt;&lt;result&gt;fail&lt;/result&gt;&lt;/spf&gt;&lt;/auth_results&gt;&lt;/record&gt;
+  &lt;record&gt;&lt;row&gt;&lt;source_ip&gt;40.107.22.50&lt;/source_ip&gt;&lt;count&gt;88&lt;/count&gt;&lt;policy_evaluated&gt;&lt;disposition&gt;none&lt;/disposition&gt;&lt;dkim&gt;pass&lt;/dkim&gt;&lt;spf&gt;fail&lt;/spf&gt;&lt;reason&gt;&lt;type&gt;forwarded&lt;/type&gt;&lt;/reason&gt;&lt;/policy_evaluated&gt;&lt;/row&gt;
+    &lt;identifiers&gt;&lt;header_from&gt;example.com&lt;/header_from&gt;&lt;/identifiers&gt;
+    &lt;auth_results&gt;&lt;dkim&gt;&lt;domain&gt;example.com&lt;/domain&gt;&lt;result&gt;pass&lt;/result&gt;&lt;selector&gt;google&lt;/selector&gt;&lt;/dkim&gt;&lt;spf&gt;&lt;domain&gt;forwarder.example.net&lt;/domain&gt;&lt;result&gt;softfail&lt;/result&gt;&lt;/spf&gt;&lt;/auth_results&gt;&lt;/record&gt;
+&lt;/feedback&gt;</pre>
+
+<section class="prose">
+<h2>What you're looking at</h2>
+<p>Mailbox providers that support DMARC send a daily XML summary to the address in your record's <code>rua=</code> tag. Each record says: <i>this IP sent N messages claiming to be from your domain, and here's how SPF, DKIM and DMARC came out.</i> This viewer merges any number of reports, groups them by source IP and header-From domain, and shows the result for each sender.</p>
+<p><b>"DMARC pass"</b> means the message passed SPF or DKIM <i>and</i> that domain aligned with the visible From domain. This is the <code>policy_evaluated</code> result in the report. The DKIM and SPF columns show the raw authentication results, including unaligned domains. That's how you spot a third-party service signing with its own domain instead of yours.</p>
+
+<h2>Typical patterns</h2>
+<ul>
+<li><b>DKIM passes for a vendor domain, DMARC fails:</b> a SaaS tool sends as you but signs with its own domain. Set up custom DKIM (a CNAME/TXT under your domain) in that tool.</li>
+<li><b>DKIM passes, SPF fails, reason "forwarded":</b> normal mail forwarding. DKIM survives forwarding and carries DMARC.</li>
+<li><b>Everything fails from an IP you don't recognize:</b> usually spoofing. That's exactly what <code>p=quarantine</code> or <code>p=reject</code> blocks.</li>
+</ul>
+
+<h2>FAQ</h2>
+<h3 class="q">Are my DMARC reports uploaded anywhere?</h3>
+<p>No. Files are decompressed and parsed in your browser with the native DecompressionStream and DOMParser APIs. The page's Content-Security-Policy (connect-src 'none') blocks any network request, so the data can't leave your machine.</p>
+<h3 class="q">Which report formats are supported?</h3>
+<p>Standard RFC 7489 aggregate reports as raw XML, gzip-compressed (.xml.gz, used by Microsoft and others) or ZIP (used by Google and Yahoo). You can drop many files at once, and duplicate reports are detected by report ID and skipped.</p>
+<h3 class="q">When is it safe to move from p=none to p=reject?</h3>
+<p>Once every legitimate sending source, meaning your mail platform, CRM, ticketing, invoicing and marketing tools, passes DMARC consistently over a few weeks of reports. Moving to quarantine with a low pct= first is a common stepping stone.</p>
+<h3 class="q">Does this show forensic (RUF) reports?</h3>
+<p>No. This viewer handles aggregate (RUA) reports only. Forensic reports are individual message samples that few providers still send.</p>
+</section>
+
+</div></main>
+<footer class="site"><div class="wrap">
+Every tool runs locally in your browser. Nothing you paste or drop is uploaded. &nbsp;·&nbsp;
+<a href="/privacy">Privacy</a> · <a href="/about">About</a> · © 2026 dorh.fyi
+</div></footer>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!--{"title":"Cron to systemd Timer Converter — crontab to OnCalendar + unit files","desc":"Convert crontab lines or a whole crontab to systemd OnCalendar expressions and ready-to-use .service/.timer units. Handles the cron day-of-month OR day-of-week rule, @daily, steps, names and CRON_TZ.","h":"Cron to systemd Timer Converter","app":true,"scripts":["common.js","cron.js"]}-->
+<span class="badge">● Runs locally. Your crontab stays in your browser.</span>
+<h1>Cron → systemd Timer Converter</h1>
+<p class="lede">Paste one cron line or an entire crontab. You get the equivalent <code class="mono">OnCalendar=</code> expression, the next run times, and ready-to-install <code class="mono">.service</code> and <code class="mono">.timer</code> units.</p>
+<div class="card">
+  <label for="in">Crontab line(s)</label>
+  <textarea class="u-h140" id="in" spellcheck="false" placeholder="*/15 * * * * /usr/local/bin/backup.sh"></textarea>
+  <div class="row">
+    <button id="go">Convert</button>
+    <label class="u-m0"><input type="checkbox" id="user"> /etc/crontab format (6th field is the user)</label>
+  </div>
+  <div class="row u-small u-muted">Examples:
+    <button class="secondary" data-ex="*/15 * * * * /usr/local/bin/backup.sh">every 15 min</button>
+    <button class="secondary" data-ex="30 2 * * 1-5 /opt/reports/nightly.py --send">weekdays 02:30</button>
+    <button class="secondary" data-ex="0 9 1,15 * mon /usr/bin/rotate-keys">dom OR dow</button>
+    <button class="secondary" data-ex="CRON_TZ=Europe/London&#10;@daily certbot renew -q&#10;@reboot /usr/local/bin/warmup">whole crontab</button>
+  </div>
+</div>
+<div id="out"></div>
+
+<section class="prose">
+<h2>Cron vs OnCalendar syntax</h2>
+<div class="scroll"><table>
+<tr><th>cron</th><th>systemd OnCalendar</th><th>meaning</th></tr>
+<tr><td class="mono">*/15 * * * *</td><td class="mono">*-*-* *:00/15:00</td><td>every 15 minutes</td></tr>
+<tr><td class="mono">0 * * * *</td><td class="mono">*-*-* *:00:00 (hourly)</td><td>top of every hour</td></tr>
+<tr><td class="mono">30 2 * * *</td><td class="mono">*-*-* 02:30:00</td><td>daily at 02:30</td></tr>
+<tr><td class="mono">0 9 * * 1-5</td><td class="mono">Mon..Fri *-*-* 09:00:00</td><td>weekdays at 09:00</td></tr>
+<tr><td class="mono">0 0 1 * *</td><td class="mono">*-*-01 00:00:00 (monthly)</td><td>first of the month</td></tr>
+<tr><td class="mono">0 0 1 1 *</td><td class="mono">*-01-01 00:00:00 (yearly)</td><td>1 January</td></tr>
+<tr><td class="mono">@reboot</td><td class="mono">OnBootSec=1min</td><td>after boot</td></tr>
+</table></div>
+
+<h2>The day-of-month / day-of-week trap</h2>
+<p>In cron, if <i>both</i> the day-of-month and day-of-week fields are restricted, the job runs when <b>either</b> matches. <code>0 9 1,15 * mon</code> runs on the 1st, the 15th <i>and</i> every Monday. In systemd, every component of an OnCalendar expression must match, so a naive one-line conversion would only fire on Mondays that fall on the 1st or 15th. This converter detects that case and emits two <code>OnCalendar=</code> lines, which systemd ORs together.</p>
+
+<h2>Other differences worth knowing</h2>
+<ul>
+<li><b>Environment:</b> cron jobs run with a minimal environment and <code>/bin/sh</code>. The generated service keeps <code>/bin/sh -c</code> for parity. Add <code>Environment=</code> lines if your job relies on variables set in the crontab.</li>
+<li><b>Escaping:</b> systemd treats <code>%</code> as a specifier and <code>$</code> as variable expansion in <code>ExecStart=</code>. The converter doubles both.</li>
+<li><b>Output:</b> cron mails output to MAILTO. systemd sends it to the journal (<code>journalctl -u name.service</code>).</li>
+<li><b>Missed runs:</b> cron skips them. <code>Persistent=true</code> makes systemd catch up after downtime.</li>
+<li><b>Overlap:</b> a systemd service won't start a second instance while the previous run is still active. Cron will happily run two at once.</li>
+</ul>
+
+<h2>FAQ</h2>
+<h3 class="q">How do I verify an OnCalendar expression?</h3>
+<p>Run systemd-analyze calendar --iterations=5 'expression' on the target machine. It prints the normalized form and the next trigger times.</p>
+<h3 class="q">Does systemd support cron step values like */5?</h3>
+<p>Yes. systemd uses start/step notation, so */5 in the minute field becomes 00/5, and a bounded range like 10-40/10 becomes the explicit list 10,20,30,40.</p>
+<h3 class="q">How do I set a timezone for a systemd timer?</h3>
+<p>Append an IANA timezone to the OnCalendar expression, e.g. OnCalendar=*-*-* 02:30:00 Europe/London. If your crontab sets CRON_TZ or TZ, the converter adds it automatically.</p>
+<h3 class="q">Why does the generated timer set AccuracySec=1s?</h3>
+<p>By default systemd may delay a timer by up to one minute to batch wakeups. Cron fires at the start of the minute, so AccuracySec=1s keeps the behaviour the same. Remove it if exact timing doesn't matter.</p>
+</section>
